@@ -38,9 +38,8 @@
   cron:
     name: Minecraft connection manager
     minute: "*/15"
-    job: ansible-playbook {{ install_path }}/minecraftservice.yaml > {{ install_path }}/cron_outfile
+    job: ansible-playbook {{ install_path }}/minecraftservice.yaml > {{ install_path }}/logs/cron_outfile
   become: true
-  become_user: minecraft
 
 - name: Accept EULA
   copy:
