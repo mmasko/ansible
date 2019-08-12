@@ -1,0 +1,10 @@
+---
+# tasks file for installgame
+- name: Prep Server
+  include_role:
+    name: "{{ source_path }}/roles/prepserver"
+
+- name: Run {{ game }} role
+  include_role:
+    name: "{{ source_path }}/roles/{{ game }}"
+    vars_from: main.yml

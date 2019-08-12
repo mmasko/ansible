@@ -1,0 +1,78 @@
+---
+# tasks file for terraria
+- name: Enable mono repo
+  command: amazon-linux-extras enable mono
+  become: true
+
+- name: Install mono
+  yum:
+    name: mono-complete
+    state: latest
+  become: true
+
+- name: get tshock via URL
+  unarchive:
+    src: "{{ tshock_url }}"
+    dest: "{{ install_path }}"
+    remote_src: yes
+  become: true
+  become_user: "{{ game }}"
+  when: s3 != "true"
+
+- name: Get tshock via S3
+  aws_s3:
+    bucket: "{{ s3_bucket }}"
+    object: terraria/{{ tshock_s3 }}
+    dest: "{{ install_path }}/tshock.zip"
+    mode: get
+  become: true
+  become_user: "{{ game }}"
+  when: s3 == "true"
+
+- name: Unarchive tshock
+  unarchive:
+    src: "{{ install_path }}/tshock.zip"
+    dest: "{{ install_path }}"
+  when: s3 == "true"
+  become: true
+  become_user: "{{ game }}"
+
+- name: Install AFK config file
+  copy:
+    src: "{{ source_path }}/roles/terraria/files/AFKconfig.json"
+    dest: "{{ install_path }}/tshock/AFKconfig.json"
+    mode: 0444
+  become: true
+  become_user: "{{ game }}"
+  tags: 
+    - configure_tshock
+
+- name: Copy server configuration file
+  template:
+    src: "{{ source_path }}/roles/terraria/templates/serverconfig.j2"
+    dest: "{{ install_path }}/serverconfig.txt"
+    mode: 0444
+  become: yes
+  become_user: "{{ game }}"
+  when: gen_world is defined and gen_world == "true"
+  tags: 
+    - configure_tshock
+
+- name: Create Tmux session if needed
+  command: tmux new-session -s "{{ game }}" -d
+  become: yes
+  become_user: "{{ game }}"
+  ignore_errors: true
+
+- name: Start {{ game }} Server
+  command: tmux send-keys -t {{ game }} 'cd {{ install_path }} && mono-sgen TerrariaServer.exe -config serverconfig.txt' ENTER
+  become: yes
+  become_user: "{{ game }}"
+  when: gen_world is defined and gen_world == "true"
+  tags:
+    - run_tshock
+
+- name: Wait for port to become available
+  wait_for:
+    port: 7777
+    delay: 1

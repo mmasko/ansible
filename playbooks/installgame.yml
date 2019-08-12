@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  vars:
+    source_path: /opt/ansible
+    install_path: "/opt/{{ game }}"
+    service_state: started
+    s3_bucket: gamesmasko
+    api_path: https://47ccw0fer8.execute-api.us-west-1.amazonaws.com/production/jakecraft
+
+  roles:
+    - role: "{{ source_path }}/roles/prepserver"
+      vars:
+        port: 5000
+      tags: prep
+    
+    - role: "{{ source_path }}/roles/{{ game }}"
+      vars:
+        port: 5000
+      tags: install

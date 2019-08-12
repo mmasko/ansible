@@ -1,0 +1,10 @@
+---
+# vars file for ./roles/minecraft
+# post URL for Lambda API
+posturl: https://47ccw0fer8.execute-api.us-west-1.amazonaws.com/production/jakecraft
+# Root URL of Minecraft server download
+mcrooturl: https://launcher.mojang.com/v1/objects
+# URLs of server versions
+versions:
+  1.14.4: 3dc3d84a581f14691199cf6831b71ed1296a9fdf/server.jar
+  1.12.2: 886945bfb2b978778c3a0288fd7fab09d315b25f/server.jar

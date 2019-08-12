@@ -1,0 +1,3 @@
+---
+# defaults file for ./roles/minecraft
+posturl: https://47ccw0fer8.execute-api.us-west-1.amazonaws.com/production/jakecraft

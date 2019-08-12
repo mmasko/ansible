@@ -1,0 +1,52 @@
+---
+# tasks file for prepserver
+
+- name: upgrade all packages
+  yum:
+    name: '*'
+    state: latest
+  when: ansible_os_family == "RedHat"
+  become: yes
+
+- name: Install packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - tmux
+    - polkit
+    - zip
+    - unzip
+    - python3-pip
+  become: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Create {{ game }} user
+  user:
+    name: "{{ game }}"
+    state: present
+    remove: no
+  become: yes
+
+- name: Install Python depenencies
+  pip:
+    name: "{{ item }}"
+    state: latest
+    extra_args: --user
+  loop:
+    - chardet2
+    - urllib3
+    - requests
+    - boto3
+    - boto
+    - botocore
+  become: true
+  become_user: "{{ game }}"
+
+- name: Create {{ game }} folder
+  file:
+      path: "{{ install_path }}"
+      owner: "{{ game }}"
+      group: "{{ game }}"
+      state: directory
+  become: true

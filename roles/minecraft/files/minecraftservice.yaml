@@ -1,0 +1,86 @@
+#!/bin/ansible
+---
+- hosts: localhost
+  vars:
+    troubleshoot: false # Prevents backup of files when testing functionality. Required true for force_terminate functionality.
+    force_stop: false # Forces shutdown of server even if there are clients connected
+    force_terminate: false # Forces a URI post event to API to terminate server. For troubleshooting
+
+  gather_facts: false
+
+  tasks:
+
+    - name: Register port 22 connections
+      shell: netstat -anp | grep :22 | grep ESTABLISHED | wc -l
+      register: active_port_22
+      become: true
+
+    - name: Register port 25565 connections
+      shell: netstat -anp | grep :25565 | grep ESTABLISHED | wc -l
+      register: active_port_25565
+      become: true
+
+    - name: set fact stopped if no active connections
+      set_fact:
+        service_state: "stopped"
+      when:
+        - active_port_25565.stdout == "0" and active_port_22.stdout == "0" or force_stop == "true"
+
+    - name: Send warning to players that server is stopping
+      command: "{{ item }}"
+      loop:
+        - tmux send-keys -t minecraft 'say SERVER SHUTTING DOWN IN 10 SECONDS' ENTER
+        - sleep 5
+        - tmux send-keys -t minecraft 'save-all' ENTER
+        - sleep 5
+        - tmux send-keys -t minecraft 'say SERVER SHUTTING DOWN' ENTER
+        - sleep 1
+        - tmux send-keys -t minecraft 'stop' ENTER
+        - sleep 5
+      when:
+        - service_state == "stopped"
+        - troubleshoot == 0
+      become: true
+      become_user: minecraft
+
+    - name: Zip game world
+      archive:
+        path: /opt/minecraft/world
+        dest: /opt/minecraft/world.zip
+      when:
+        - service_state == "stopped"
+        - troubleshoot == "false"
+      become: true
+      become_user: minecraft
+
+    - name: Backup world to S3
+      aws_s3:
+        bucket: gamesmasko
+        object: minecraft/worlds/world.zip
+        src: /opt/minecraft/world.zip
+        mode: put
+      when:
+        - service_state == "stopped"
+        - troubleshoot == "false"
+      become: true
+      become_user: minecraft
+
+    - name: display ssh connections
+      debug:
+        var: active_port_22.stdout
+      when: active_port_22.stdout > "0"
+
+    - name: display mc connections
+      debug:
+        var: active_port_25565.stdout
+      when: active_port_25565.stdout > "0"
+
+    - name: Login to a form based webpage using a list of tuples
+      uri:
+        url: "{{ api_path }}"
+        method: POST
+        body_format: application json
+        body:
+          - [ type, test ]
+      register: uri_post
+      when: active_port_25565.stdout == "0" and active_port_22.stdout == "0" or force_terminate == "true" and troubleshoot == "true"

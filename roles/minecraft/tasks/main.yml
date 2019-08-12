@@ -1,0 +1,81 @@
+---
+# tasks file for ./roles/minecraft
+# Minecraft user is created within server prep role
+
+- name: Install Java
+  command: amazon-linux-extras install -y java-openjdk11=latest
+  become: yes
+
+- name: Download player's world
+  aws_s3:
+    bucket: gamesmasko
+    object: /minecraft/worlds/jakecraft.zip
+    dest: "{{ install_path }}/{{ user }}.zip"
+    mode: get
+  become: true
+  become_user: minecraft
+  ignore_errors: false
+  when: user is defined
+
+- name: Download Minecraft
+  get_url:
+    url: "{{ mcrooturl }}/{{ versions[version] }}"
+    dest: "{{ install_path }}/server.jar"
+    owner: minecraft
+    group: minecraft
+  become: true
+  become_user: minecraft
+
+- name: Copy service playbook
+  copy:
+    src: "{{ source_path }}/roles/minecraft/files/minecraftservice.yaml"
+    dest: "{{ install_path }}/minecraftservice.yaml"
+    mode: '0644'
+  become: true
+  become_user: minecraft
+
+- name: Create CRON jobs
+  cron:
+    name: Minecraft connection manager
+    minute: "*/15"
+    job: ansible-playbook {{ install_path }}/minecraftservice.yaml > {{ install_path }}/cron_outfile
+  become: true
+  become_user: minecraft
+
+- name: Accept EULA
+  copy:
+    dest: "{{ install_path }}/eula.txt"
+    content: eula=true
+  become: true
+  become_user: minecraft
+  when: game == "minecraft"
+
+- name: Check if world was downloaded
+  stat:
+    path: "{{ install_path }}/{{ user }}.zip"
+  register: stat_result
+  when: user is defined
+
+- name: Unzip player archive if world was downloaded
+  unarchive:
+    src: "{{ install_path }}/{{ user }}.zip"
+    dest: "{{ install_path }}"
+  become: true
+  become_user: minecraft
+  when: user is defined and stat_result.stat.exists == True
+
+- name: Create Tmux session if needed
+  command: tmux new-session -s minecraft -d
+  become: yes
+  become_user: minecraft
+  ignore_errors: true
+
+- name: Start Minecraft Server
+  command: tmux send-keys -t minecraft 'cd /opt/minecraft && java -Xmx1024M -Xms1024M -jar server.jar nogui' ENTER
+  become: yes
+  become_user: minecraft
+
+- name: Wait for port 25565 to become available
+  wait_for:
+    port: 25565
+    delay: 1
