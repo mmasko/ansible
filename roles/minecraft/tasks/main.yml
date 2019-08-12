@@ -63,6 +63,12 @@
   become_user: minecraft
   when: user is defined and stat_result.stat.exists == True
 
+- name: Delete archive after unarchive
+  file: 
+    path: "{{ install_path }}/{{ user }}.zip"
+    state: absent
+  when: user is defined and stat_result.stat.exists == True
+
 - name: Create Tmux session if needed
   command: tmux new-session -s minecraft -d
   become: yes

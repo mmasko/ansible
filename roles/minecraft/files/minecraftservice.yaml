@@ -2,8 +2,8 @@
 ---
 - hosts: localhost
   vars:
-    skip_backup: true # Set to true to skip archiving and uploading of player world files. 
-    force_stop: true # Forces shutdown of server even if there are clients connected
+    skip_backup: false # Set to true to skip archiving and uploading of player world files. 
+    force_stop: false # Forces shutdown of server even if there are clients connected
     force_terminate: false # Forces a URI post event to API to terminate server.
 
   gather_facts: false
