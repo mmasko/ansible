@@ -2,9 +2,10 @@
 ---
 - hosts: localhost
   vars:
-    skip_backup: false # Set to true to skip archiving and uploading of player world files. 
-    force_stop: false # Forces shutdown of server even if there are clients connected
-    force_terminate: false # Forces a URI post event to API to terminate server.
+    skip_backup: true # Set to true to skip archiving and uploading of player world files. 
+    force_stop: true # Forces shutdown of server even if there are clients connected
+    skip_warning: true # Skips 20 second warning. 
+    force_terminate: true # Forces a URI post event to API to terminate server.
 
   gather_facts: false
 
@@ -19,6 +20,11 @@
       shell: netstat -anp | grep :25565 | grep ESTABLISHED | wc -l
       register: active_port_25565
       become: true
+
+    - name: set service state to started so no actions are taken
+      set_fact:
+        service_state: "started"
+      when: active_port_25565.stdout > "0" and active_port_22.stdout > "0" or force_stop != true
 
     - name: set fact stopped if no active connections or force stop is true
       set_fact:
@@ -36,7 +42,7 @@
         - sleep 1
         - tmux send-keys -t minecraft 'stop' ENTER
         - sleep 5
-      when: service_state == "stopped"
+      when: service_state == "stopped" and skip_warning == false
       become: true
       become_user: minecraft
 
@@ -62,28 +68,23 @@
       become: true
       become_user: minecraft
 
-    - name: display ssh connections
-      debug:
-        var: active_port_22.stdout
-
-    - name: display mc connections
-      debug:
-        var: active_port_25565.stdout
-
-    - name: display service state
-      debug:
-        var: service_state
-    
-    - name: display force_state
-      debug:
-        var: force_state
+    - name: Get instance ID from local server
+      uri:
+        url: http://169.254.169.254/latest/meta-data/instance-id
+        method: GET
+        return_content: yes
+      register: instID
 
     - name: Send POST to API to terminate instance
       uri:
-        url: "{{ api_path }}"
+        url: https://47ccw0fer8.execute-api.us-west-1.amazonaws.com/production/jakecraft
         method: POST
-        body_format: application/json
-        body:
-          - [ type, test ]
+        return_content: yes
+        body_format: json
+        body: {"type": "terminate", "instID": "{{ instID.content }}"}
       register: uri_post
-      when: active_port_25565.stdout == "0" and active_port_22.stdout == "0" or force_terminate == true
+      when: active_port_25565.stdout == "0" and active_port_22.stdout == "0" or force_terminate == true and instID is defined
+
+    - name: display Instance ID
+      debug:
+        var: instID.content
