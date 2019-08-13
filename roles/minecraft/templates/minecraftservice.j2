@@ -32,7 +32,7 @@
       when: active_port_25565.stdout == "0" and active_port_22.stdout == "0" or force_stop == true
 
     - name: Send warning to players that server is stopping
-      command: {% raw %}"{{ item }}"{% endraw %}
+      command: {{ '"{{' }} item {{ '}}"' }}
       loop:
         - tmux send-keys -t minecraft 'say SERVER SHUTTING DOWN IN 10 SECONDS' ENTER
         - sleep 5

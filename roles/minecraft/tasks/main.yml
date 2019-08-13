@@ -27,8 +27,8 @@
   become_user: minecraft
 
 - name: Copy shutdown playbook
-  copy:
-    src: "{{ source_path }}/files/minecraftservice.yaml"
+  template:
+    src: "{{ source_path }}/templates/minecraftservice.j2"
     dest: "{{ install_path }}/minecraftservice.yaml"
     mode: '0644'
   become: true
