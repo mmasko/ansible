@@ -9,7 +9,7 @@
 - name: Download player's world
   aws_s3:
     bucket: gamesmasko
-    object: /minecraft/worlds/jakecraft.zip
+    object: /minecraft/worlds/{{ user }}.zip
     dest: "{{ install_path }}/{{ user }}.zip"
     mode: get
   become: true
