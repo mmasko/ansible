@@ -49,7 +49,7 @@
     - name: Zip game world
       archive:
         path: /opt/minecraft/world
-        dest: /opt/minecraft/world.zip
+        dest: /opt/minecraft/{{ user }}.zip
       when:
         - service_state == "stopped"
         - skip_backup == false
@@ -59,8 +59,8 @@
     - name: Backup world to S3
       aws_s3:
         bucket: gamesmasko
-        object: minecraft/worlds/world.zip
-        src: /opt/minecraft/world.zip
+        object: minecraft/worlds/{{ user }}.zip
+        src: /opt/minecraft/{{ user }}.zip
         mode: put
       when:
         - service_state == "stopped"
