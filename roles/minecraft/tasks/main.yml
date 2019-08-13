@@ -26,9 +26,9 @@
   become: true
   become_user: minecraft
 
-- name: Copy service playbook
+- name: Copy shutdown playbook
   template:
-    src: "{{ source_path }}/roles/minecraft/templates/minecraft.j2"
+    src: "{{ source_path }}/templates/minecraft.j2"
     dest: "{{ install_path }}/minecraftservice.yaml"
     mode: '0644'
   become: true
@@ -67,6 +67,9 @@
   file: 
     path: "{{ install_path }}/{{ user }}.zip"
     state: absent
+  when: user is defined and stat_result.stat.exists == True
+  become: true
+  become_user: minecraft
   when: user is defined and stat_result.stat.exists == True
 
 - name: Create Tmux session if needed
