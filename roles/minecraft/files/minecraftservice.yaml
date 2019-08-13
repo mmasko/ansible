@@ -42,9 +42,9 @@
         - sleep 1
         - tmux send-keys -t minecraft 'stop' ENTER
         - sleep 5
-      when: service_state == "stopped" and skip_warning == false
       become: true
       become_user: minecraft
+      when: service_state == "stopped" and skip_warning == false
 
     - name: Zip game world
       archive:
@@ -68,6 +68,14 @@
       become: true
       become_user: minecraft
 
+    - name: Get instance ID from local server
+      uri:
+        url: http://169.254.169.254/latest/meta-data/instance-id
+        method: GET
+        return_content: yes
+      register: instID
+      when: service_state == "stopped" or force_terminate == true
+
     - name: Send POST to API to terminate instance
       uri:
         url: https://47ccw0fer8.execute-api.us-west-1.amazonaws.com/production/jakecraft
@@ -76,7 +84,7 @@
         body_format: json
         body: {"type": "terminate", "instID": "{{ instID.content }}"}
       register: uri_post
-      when: active_port_25565.stdout == "0" and active_port_22.stdout == "0" or force_terminate == true and instID is defined
+      when: service_state == "stopped" or force_terminate == true
 
     - name: display Instance ID
       debug:
