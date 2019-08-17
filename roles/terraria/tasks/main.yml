@@ -10,6 +10,14 @@
     state: latest
   become: true
 
+- name: Create tshock folder
+  file:
+      path: "{{ install_path }}/tshock"
+      owner: "{{ game }}"
+      group: "{{ game }}"
+      state: directory
+  become: true
+
 - name: get tshock via URL
   unarchive:
     src: "{{ tshock_url }}"
@@ -17,7 +25,7 @@
     remote_src: yes
   become: true
   become_user: "{{ game }}"
-  when: s3 != "true"
+  when: s3 == false
 
 - name: Get tshock via S3
   aws_s3:
@@ -27,19 +35,17 @@
     mode: get
   become: true
   become_user: "{{ game }}"
-  when: s3 == "true"
 
 - name: Unarchive tshock
   unarchive:
     src: "{{ install_path }}/tshock.zip"
-    dest: "{{ install_path }}"
-  when: s3 == "true"
+    dest: "{{ install_path }}/tshock"
   become: true
   become_user: "{{ game }}"
 
 - name: Install AFK config file
   copy:
-    src: "{{ source_path }}/roles/terraria/files/AFKconfig.json"
+    src: "{{ source_path }}/files/AFKconfig.json"
     dest: "{{ install_path }}/tshock/AFKconfig.json"
     mode: 0444
   become: true
@@ -49,12 +55,12 @@
 
 - name: Copy server configuration file
   template:
-    src: "{{ source_path }}/roles/terraria/templates/serverconfig.j2"
+    src: "{{ source_path }}/templates/serverconfig.j2"
     dest: "{{ install_path }}/serverconfig.txt"
     mode: 0444
   become: yes
   become_user: "{{ game }}"
-  when: gen_world is defined and gen_world == "true"
+  #when: gen_world is defined and gen_world == "true"
   tags: 
     - configure_tshock
 
@@ -68,7 +74,7 @@
   command: tmux send-keys -t {{ game }} 'cd {{ install_path }} && mono-sgen TerrariaServer.exe -config serverconfig.txt' ENTER
   become: yes
   become_user: "{{ game }}"
-  when: gen_world is defined and gen_world == "true"
+  #when: gen_world is defined and gen_world == "true"
   tags:
     - run_tshock
 

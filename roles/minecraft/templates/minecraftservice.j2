@@ -48,7 +48,10 @@
 
     - name: Zip game world
       archive:
-        path: /opt/minecraft/world
+        path:
+        - /opt/minecraft/world
+        - /opt/minecraft/server.properties
+        - /opt/minecraft/ops.json
         dest: /opt/minecraft/{{ user }}.zip
       when:
         - service_state == "stopped"
@@ -78,7 +81,7 @@
 
     - name: Send POST to API to terminate instance
       uri:
-        url: https://47ccw0fer8.execute-api.us-west-1.amazonaws.com/production/jakecraft
+        url: "{{ api_path }}"
         method: POST
         return_content: yes
         body_format: json

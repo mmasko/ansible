@@ -47,7 +47,6 @@
     content: eula=true
   become: true
   become_user: minecraft
-  when: game == "minecraft"
 
 - name: Check if world was downloaded
   stat:
