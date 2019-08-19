@@ -14,7 +14,7 @@
     mode: get
   become: true
   become_user: minecraft
-  ignore_errors: false
+  ignore_errors: true
   when: user is defined
 
 - name: Download Minecraft
