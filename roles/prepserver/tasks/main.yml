@@ -10,14 +10,13 @@
 
 - name: Install packages
   yum:
-    name: "{{ item }}"
+    name:
+      - tmux
+      - polkit
+      - zip
+      - unzip
+      - python3-pip
     state: latest
-  loop:
-    - tmux
-    - polkit
-    - zip
-    - unzip
-    - python3-pip
   become: yes
   when: ansible_os_family == "RedHat"
 
@@ -30,16 +29,15 @@
 
 - name: Install Python depenencies
   pip:
-    name: "{{ item }}"
-    state: latest
-    extra_args: --user
-  loop:
+    name:
     - chardet2
     - urllib3
     - requests
     - boto3
     - boto
     - botocore
+    state: latest
+    extra_args: --user
   become: true
   become_user: "{{ game }}"
 
