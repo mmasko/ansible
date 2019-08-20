@@ -76,8 +76,12 @@
   become_user: minecraft
   ignore_errors: true
 
+- name: Get free memory for java process
+  shell: free|awk '/^Mem:/{print $4/1024}' | cut -d. -f1
+  register: freemem
+
 - name: Start Minecraft Server
-  command: tmux send-keys -t minecraft 'cd /opt/minecraft && java -Xmx1024M -Xms1024M -jar server.jar nogui' ENTER
+  command: tmux send-keys -t minecraft 'cd /opt/minecraft && java -Xmx{{ freemem.stdout }}M -Xms{{ freemem.stdout }}M -jar server.jar nogui' ENTER
   become: yes
   become_user: minecraft
 
