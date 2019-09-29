@@ -8,7 +8,7 @@
   when: ansible_os_family == "RedHat"
   become: yes
 
-- name: Install packages
+- name: Install common packages
   yum:
     name:
       - tmux
@@ -18,14 +18,21 @@
       - python3-pip
     state: latest
   become: yes
-  when: ansible_os_family == "RedHat"
 
-- name: Create {{ game }} user
+- name: Create {{ app }} user
   user:
-    name: "{{ game }}"
+    name: "{{ app }}"
     state: present
     remove: no
   become: yes
+
+- name: Create {{ app }} folder
+  file:
+      path: "{{ install_path }}"
+      owner: "{{ app }}"
+      group: "{{ app }}"
+      state: directory
+  become: true
 
 - name: Install Python depenencies
   pip:
@@ -36,15 +43,8 @@
     - boto3
     - boto
     - botocore
+    - pexpect
     state: latest
     extra_args: --user
   become: true
-  become_user: "{{ game }}"
-
-- name: Create {{ game }} folder
-  file:
-      path: "{{ install_path }}"
-      owner: "{{ game }}"
-      group: "{{ game }}"
-      state: directory
-  become: true
+  become_user: "{{ app }}"

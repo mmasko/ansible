@@ -1,0 +1,10 @@
+---
+# file: oracle-java/defaults/main.yml
+#
+# defaults file
+#
+oracle_java_major_version: 12
+oracle_java_minor_version: .0.2
+oracle_java_build: 10
+oracle_java_set_as_default: yes
+oracle_java_use_defaults: yes
