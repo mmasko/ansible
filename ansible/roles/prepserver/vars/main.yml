@@ -1,0 +1,22 @@
+---
+# vars file for LinuxGSM
+SteamCMDsource: http://media.steampowered.com/installer/steamcmd_linux.tar.gz
+
+java:
+  Amazon: java-11-openjdk-headless
+
+steamCMD:
+  - glibc.i686
+  - libstdc++
+  - libstdc++.i686
+
+games:
+  minecraft:
+    user: mcserver
+  steamCMD:
+    just_cause_2:
+      user: jc2server
+      appID: 261140
+    just_cause_3:
+      user: jc3server
+      appID: 619960

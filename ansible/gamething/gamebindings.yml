@@ -1,0 +1,41 @@
+---
+# vars file for LinuxGSM
+steam:
+  SteamCMDsource: http://media.steampowered.com/installer/steamcmd_linux.tar.gz
+  deps:
+    - glibc.i686
+    - libstdc++
+    - libstdc++.i686
+games:
+  minecraft:
+    user: mcserver
+    deps:
+      - java-openjdk11
+    just_cause_2:
+      user: jc2server
+      appID: 261140
+      deps: 
+        - steam.deps
+    just_cause_3:
+      user: jc3server
+      appID: 619960
+      deps: 
+        - steam.deps
+    Arma_3:
+      user: arma3server
+      appID: 233780
+      deps:
+        - steam.deps
+    golden_eye:
+      appID: 310
+      gsmID: gesserver
+      remote_file: GoldenEye_Source_v5.0.6_full_server.tar.bz2
+      deps:
+        - steam.deps
+        - zlib.i686
+        - openldap.i686
+    starbound:
+      user: sbserver
+      appID: 211820
+      deps:
+        - steam.deps

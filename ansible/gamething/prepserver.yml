@@ -1,0 +1,48 @@
+---
+# tasks file for prepserver
+
+- name: upgrade all packages
+  yum:
+    name: '*'
+    state: latest
+  become: yes
+
+- name: Install common packages
+  yum:
+    name:
+      - tmux
+      - polkit
+      - zip
+      - unzip
+    state: latest
+  become: yes
+
+- name: Create {{ app }} user
+  user:
+    name: "{{ app }}"
+    state: present
+    remove: no
+  become: yes
+
+- name: Create {{ app }} folder
+  file:
+      path: "{{ install_path }}"
+      owner: "{{ app }}"
+      group: "{{ app }}"
+      state: directory
+  become: true
+
+- name: Install Python depenencies
+  pip:
+    name:
+    - chardet2
+    - urllib3
+    - requests
+    - boto3
+    - boto
+    - botocore
+    - pexpect
+    state: latest
+    extra_args: --user
+  become: true
+  become_user: "{{ app }}"

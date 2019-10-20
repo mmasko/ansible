@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+import requests
+from subprocess import Popen, PIPE
+from os import system
+
+troubleshoot = 0 # Set from 0 to 1 to enable troubleshooting output
+
+# Shutdown server if no active connections
+posturl = {{ posturl }} # URL to API
+instID = requests.get('http://169.254.169.254/latest/meta-data/instance-id').content # Get instance ID from local EC2 meta
+#print(instID)
+def get_connections(port): # Function that retrieves number of ESTABLISHED connection for given port
+  proc1 = Popen(["netstat", "-ant"], stdout=PIPE)
+  proc2 = Popen(['grep', 'ESTABLISHED'], stdin=proc1.stdout, stdout=PIPE, stderr=PIPE)
+  proc3 = Popen(['grep', port], stdin=proc2.stdout, stdout=PIPE, stderr=PIPE)
+  proc4 = Popen(['wc', '-l'], stdin=proc3.stdout, stdout=PIPE, stderr=PIPE)
+  proc1.stdout.close() # Allow proc1 to receive a SIGPIPE if proc2 exits.
+  out, err = proc4.communicate()
+  conns = int(out.splitlines()[0]) # Return only the first line of the output, otherwise two lines will be returned.
+  return conns
+
+# Getting number of active connection
+port = str(22) # Sending int as str as grep requires string
+sshconns = int(get_connections(port)) # Converting return to int for later if condition
+port = str(25565) # Sending int as str as grep requires string
+mcconns = int(get_connections(port)) # Converting return to int for later if condition
+
+if troubleshoot == 1:
+  print("Minecraft Connections:", mcconns) # Number of  ESTABLISHED Minecraft connections
+  print("Secure Shell Connections:", sshconns) # Number of ESTABLISHED secure shell connections
+
+if mcconns == 0 and sshconns == 0 and troubleshoot == 0:
+  # Backup world files
+  system("systemctl stop minecraft")
+  system("cd /home/ec2-user/minecraft/ && zip -r jakecraft.zip ./ops.json ./server-icon.png ./eula.txt ./server.properties world/ && aws s3 cp jakecraft.zip s3://gamesmasko/minecraft/worlds/ && rm -f jakecraft.zip")
+  
+  headers = {'content-type':'application/json'}
+  r = requests.post(posturl, json={"type": "terminate","instID":instID})
+
+if mcconns > 0 or sshconns > 0 and troubleshoot == 1:
+  print("No POST initiated")

@@ -1,0 +1,7 @@
+---
+# tasks file for steamcmd
+- name: download steamCMD
+  unarchive:
+    src: "{{ steam_cmd_source }}"
+    dest: "{{ gamespath }}"
+    remote_src: yes

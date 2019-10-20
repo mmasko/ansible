@@ -1,0 +1,5 @@
+---
+# vars file for terraria
+tshock_url: https://github.com/Pryaxis/TShock/releases/download/v4.3.26/tshock_4.3.26.zip
+tshock_s3: tshock_4.3.26.zip
+tshock_s3_url: https://gamesmasko.s3-us-west-1.amazonaws.com/terraria/tshock_4.3.26.zip

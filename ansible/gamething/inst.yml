@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  vars:
+
+  tasks: 
+    - name: Prep Server
+      include_tasks: ./prepserver.yml

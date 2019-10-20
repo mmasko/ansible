@@ -1,0 +1,9 @@
+---
+# vars file for docker-wordpress
+docker_volume: db_data
+docker_network: wordpress_net
+db_name: db
+wp_name: wordpress
+wp_host_port: "{{ lookup('env','WORDPRESS_PORT') | default(8080)}}"
+db_image: mysql:5.7
+wp_container_port: 80

@@ -1,0 +1,58 @@
+---
+# tasks file for docker-wordpress
+- name: Install {{ app }} depenencies
+  pip:
+    name:
+      - docker
+    state: latest
+    extra_args: --user
+  become: true
+  become_user: "{{ app }}"
+
+- name: Allow {{ app }} docker access
+  user:
+    name: "{{ app }}"
+    group: docker
+  become: true    
+
+- name: Create a volume
+  docker_volume:
+    name: "{{ docker_volume }}"
+  become: true
+  become_user: "{{ app }}"
+
+- name: Create a network
+  docker_network:
+    name: "{{ docker_network }}"
+  become: true
+  become_user: "{{ app }}"
+
+- name: Start database
+  docker_container:
+    name: "{{ db_name }}"
+    image: "{{ db_image }}"
+    volumes:
+      - "{{ docker_volume }}:/var/lib/mysql:rw"
+    restart_policy: always
+    network_mode: "{{ docker_network }}"
+    env:
+      MYSQL_ROOT_PASSWORD: wordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+  become: true
+  become_user: "{{ app }}"
+
+- name: Start WordPress
+  docker_container:
+    name: "{{ wp_name }}"
+    image: wordpress:latest
+    ports:
+      - 0.0.0.0:80:80
+    restart_policy: always
+    network_mode: "{{ docker_network }}"
+    env:
+      WORDPRESS_DB_HOST: "{{ db_name }}:3306"
+      WORDPRESS_DB_PASSWORD: wordpress
+  become: true
+  become_user: "{{ app }}"

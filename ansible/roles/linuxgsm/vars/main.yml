@@ -1,0 +1,40 @@
+---
+# vars file for LinuxGSM
+steam_anon: anonymous
+steam_creds: macct01 7Lc4^R0837Q%
+SteamCMDsource: http://media.steampowered.com/installer/steamcmd_linux.tar.gz
+steamgames:
+  just_cause_2:
+    user: jc2server
+    appID: 261140
+  just_cause_3:
+    user: jc3server
+    appID: 619960
+    login: anonymous
+  Arma_3:
+    user: arma3server
+    appID: 233780
+  golden_eye:
+    user: gesserver
+    appID: 310
+    remote_file: GoldenEye_Source_v5.0.6_full_server_windows.7z
+    login: anonymous
+    deps:
+      - http://mirror.centos.org/centos/7/os/x86_64/Packages/isdn4k-utils-3.2-99.el7.x86_64.rpm
+      - http://ftp.altlinux.org/pub/distributions/ALTLinux/Sisyphus/x86_64/RPMS.classic/libmpg123-1.25.12-alt1.x86_64.rpm
+      - samba-winbind
+      - xorg-x11-server-Xvfb
+      - epel-release
+      - p7zip
+      - wine
+    extras:
+      - epel
+
+    #remote_fileurl: https://files.linuxgsm.com/GoldenEyeSource/GoldenEye_Source_v5.0.6_full_server.tar.bz2
+    #remote_file: GoldenEye_Source_v5.0.6_full_server.tar.bz2
+    #deps:
+    #  - zlib.i686
+    #  - openldap.i686
+  starbound:
+    user: sbserver
+    appID: 211820

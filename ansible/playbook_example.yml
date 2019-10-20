@@ -1,0 +1,10 @@
+---
+- hosts: localhost
+  vars:
+    troubleshoot: 0
+
+  gather_facts: true
+  
+  tasks:
+
+    - name: First task here

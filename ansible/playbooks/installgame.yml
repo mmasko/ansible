@@ -1,0 +1,12 @@
+---
+- hosts: localhost
+  vars:
+    source_path: /opt/ansible/roles
+    install_path: "/opt/{{ app }}"
+    service_state: started
+    s3_bucket: gamesmasko
+    api_path: https://47ccw0fer8.execute-api.us-west-1.amazonaws.com/production/jakecraft
+
+  roles:
+    - role: "{{ source_path }}/prepserver" # Prepares server
+    - role: "{{ source_path }}/{{ app }}"  # Installs application

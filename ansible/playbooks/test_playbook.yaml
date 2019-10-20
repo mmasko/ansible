@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  vars:
+    troubleshoot: 1
+
+  gather_facts: false
+  tasks:
+      
+    - name: Get status of server
+      retries: 100
+      command: mcstatus localhost status
+      register: mcstate
+      until: mcstate.rc == 0
+      become: true
+      become_user: minecraft
+      
+    - name: Show output
+      debug:
+        var: mcstate.rc

@@ -1,0 +1,28 @@
+---
+- hosts: localhost
+  vars:
+    troubleshoot: 1
+    local_volume: /home/ec2-user/minecraft
+    forge_version: 
+    
+  gather_facts: true
+
+  tasks:
+    - name: minecraft Docker
+      docker_container:
+        name: minecraft
+        image: itzg/minecraft-server
+        volumes:
+          - "{{ local_volume }}:/data"
+        env:
+          EULA=TRUE
+          VERSION=1.12.2
+          TYPE=FORGE
+          FORGEVERSION=14.23.5.2847
+        ports:
+          - 25565:25565
+      register: out
+    
+    - name: debug
+      debug:
+        var: out

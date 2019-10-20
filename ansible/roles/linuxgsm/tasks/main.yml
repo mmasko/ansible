@@ -1,0 +1,144 @@
+---
+# tasks file for LinuxGSM
+- name: Install steam prereqs
+  package:
+    name:
+      - glibc.i686
+      - libstdc++
+      - libstdc++.i686
+    state: latest
+  become: true
+  #tags: gsm
+
+- name: Enable Amazon Extras
+  command: "amazon-linux-extras enable {{ item }}"
+  loop: "{{ steamgames[variation].extras }}"
+  become: true
+  when: steamgames[variation].extras is defined
+  #tags: gsm
+
+- name: Install game specific prereqs
+  package:
+    name: "{{ item }}"
+    state: latest
+  loop: "{{ steamgames[variation].deps }}"
+  become: true
+  when: steamgames[variation].deps is defined
+  tags: gsm
+
+- name: Create a directory if it does not exist
+  file:
+    path: "{{ install_path }}/steamcmd/"
+    state: directory
+    owner: "{{ app }}"
+  become: true
+  become_user: "{{ app }}"
+  #tags: gsm
+
+- name: Get SteamCMD files
+  unarchive:
+    src: "{{ SteamCMDsource }}"
+    dest: "{{ install_path }}/steamcmd/"
+    remote_src: true
+  become: true
+  become_user: "{{ app }}"
+  #tags: gsm
+
+- name: Create symbolic link for libstdc++.so.6
+  file:
+    src: "{{ install_path }}/steamcmd/linux32/libstdc++.so.6"
+    dest: "{{ install_path }}/steamcmd/libstdc++.so.6"
+    state: link
+  become: true
+  become_user: "{{ app }}"
+  #tags: gsm
+
+- name: Download Server
+  shell: |
+    cd {{ install_path }}/steamcmd
+    ./steamcmd.sh +login "{{ steamgames[variation].login }}" +force_install_dir ../"{{ variation }}" +app_update "{{ steamgames[variation].appID }}" +quit
+  become: true
+  become_user: "{{ app }}"
+  tags: gsm
+
+- name: debug
+  debug:
+    var: steamgames[variation].remote_file
+  #tags: gsm
+
+- name: download {{ variation }} source files
+  aws_s3:
+    bucket: gamesmasko
+    object: /source/{{ steamgames[variation].remote_file }}
+    dest: "{{ install_path }}/{{ steamgames[variation].remote_file }}"
+    mode: get
+  become: true
+  become_user: "{{ app }}"
+  when: steamgames[variation].remote_file is defined
+  tags: gsm
+
+- name: Extract {{ variation }} source files
+  unarchive:
+    src: "{{ install_path }}/{{ steamgames[variation].remote_file }}"
+    #src: "{{ install_path }}/goldeneye.zip"
+    dest: "{{ install_path }}"
+    remote_src: yes
+  become: true
+  become_user: "{{ app }}"
+  when: steamgames[variation].remote_file is defined
+  tags: gsm
+
+#- name: Archive gesource
+#  archive:
+#    path: "{{ install_path }}/gesource"
+#    dest: "{{ install_path }}/goldeneye.zip"
+#  become: true
+#  become_user: "{{ app }}"
+  #tags: gsm
+
+#- name: Download linux.sh
+#  get_url:
+#    url: https://linuxgsm.sh
+#    dest: "{{ install_path }}"
+#    mode: a+x
+#  become: true
+#  become_user: "{{ app }}"
+#  tags: gsm
+
+#- name: debug
+#  debug:
+#    msg: "{{ install_path }}/linuxgsm.sh {{ steamgames[variation].gsmID }}"
+  #tags: gsm
+
+#- name: get {{ variation }} install file
+#  shell: |
+#    cd {{ install_path }}
+#    ./linuxgsm.sh {{ steamgames[variation].gsmID }}
+#  become: true
+#  become_user: "{{ app }}"
+  #tags: gsm
+
+#- name: install {{ variation }}
+#  expect:
+#    command: |
+#      cd {{ install_path }}
+#      ./{{ steamgames[variation].gsmID }} install
+#  become: true
+#  become_user: "{{ app }}"
+#  register: out
+#  tags: gsm
+
+
+#- name: install {{ variation }}
+#  expect:
+#    command: |
+#      cd {{ install_path }}
+#      ./{{ steamgames[variation].gsmID }} install
+#    responses:
+#      Question:
+#        - y
+
+#- name: debug
+#  debug:
+#    var: out
+#  tags: gsm
