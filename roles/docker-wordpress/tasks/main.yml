@@ -1,17 +1,5 @@
 ---
 # tasks file for docker-wordpress
-- name: Ensure docker service is started
-  service:
-    name: docker
-    state: started
-  become: true
-
-- name: Allow {{ app }} docker access
-  user:
-    name: "{{ app }}"
-    group: docker
-  become: true
-
 - name: Install {{ app }} depenencies
   pip:
     name:
@@ -20,6 +8,12 @@
     extra_args: --user
   become: true
   become_user: "{{ app }}"
+
+- name: Allow {{ app }} docker access
+  user:
+    name: "{{ app }}"
+    group: docker
+  become: true    
 
 - name: Create a volume
   docker_volume:
