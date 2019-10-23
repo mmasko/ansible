@@ -1,7 +1,7 @@
 ---
 # vars file for LinuxGSM
 steam_anon: anonymous
-steam_creds: macct01 7Lc4^R0837Q%
+steam_creds: 
 SteamCMDsource: http://media.steampowered.com/installer/steamcmd_linux.tar.gz
 steamgames:
   just_cause_2:
