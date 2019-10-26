@@ -1,5 +1,17 @@
 ---
 # tasks file for docker-wordpress
+- name: Ensure docker service is started
+  service:
+    name: docker
+    state: started
+  become: true
+
+- name: Allow {{ app }} docker access
+  user:
+    name: "{{ app }}"
+    group: docker
+  become: true
+
 - name: Install {{ app }} depenencies
   pip:
     name:
@@ -9,17 +21,17 @@
   become: true
   become_user: "{{ app }}"
 
-- name: Allow {{ app }} docker access
-  user:
-    name: "{{ app }}"
-    group: docker
-  become: true    
+#- name: Create db volume
+#  docker_volume:
+#    name: db_data
+#  become: true
+#  become_user: "{{ app }}"
 
-- name: Create a volume
-  docker_volume:
-    name: "{{ docker_volume }}"
-  become: true
-  become_user: "{{ app }}"
+#- name: Create app volume
+#  docker_volume:
+#    name: wp_data
+#  become: true
+#  become_user: "{{ app }}"
 
 - name: Create a network
   docker_network:
@@ -32,7 +44,7 @@
     name: "{{ db_name }}"
     image: "{{ db_image }}"
     volumes:
-      - "{{ docker_volume }}:/var/lib/mysql:rw"
+      - /opt/{{ app }}/db_data:/var/lib/mysql"
     restart_policy: always
     network_mode: "{{ docker_network }}"
     env:
@@ -54,5 +66,8 @@
     env:
       WORDPRESS_DB_HOST: "{{ db_name }}:3306"
       WORDPRESS_DB_PASSWORD: wordpress
+    volumes:
+      - /opt/{{ app }}/wp_data:/var/www/html
+      - /opt/ansible/roles/docker-wordpress/files/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
   become: true
   become_user: "{{ app }}"

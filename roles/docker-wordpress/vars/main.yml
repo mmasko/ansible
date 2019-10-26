@@ -1,6 +1,7 @@
 ---
 # vars file for docker-wordpress
-docker_volume: db_data
+docker_db_volume: /opt/{{ app }}/db_data
+docker_wp_volume: /opt/{{ app }}/wp_data
 docker_network: wordpress_net
 db_name: db
 wp_name: wordpress
