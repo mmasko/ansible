@@ -1,0 +1,96 @@
+---
+- hosts: localhost
+
+  vars:
+    initialization_script: "<powershell>{{ lookup('file', './ConfigureRemotingForAnsible.txt') }}</powershell>"
+    security_groups_list: io-dev
+    aws_keypair_name: io-dev
+    aws_instance_type: t2-large
+    instance_name: myles-ebs-test
+    windows_ami_image_id: ami-0bff712af642c77c9
+    region: us-west-2
+    volume_c_size: 100
+
+
+  gather_facts: true
+  
+  tasks:
+    - name: Create EC2 instances
+      ec2:
+        group: "{{ security_groups_list }}"
+        key_name: "{{ aws_keypair_name }}"
+        user_data: "{{ initialization_script }}"
+        #aws_access_key: "{{ aws_access }}"
+        #aws_secret_key: "{{ aws_secret_access }}"
+        instance_type: "{{ aws_instance_type }}"
+        id: "{{ instance_name }}"
+        image: "{{ windows_ami_image_id }}"
+        #private_ip: "{{ private_instance_ip }}"
+        
+        wait: yes
+        wait_timeout: 500
+        assign_public_ip: no
+        region: "{{ region }}"
+        #vpc_subnet_id:  "{{ vpc_subnet_id }}"
+        volumes:
+          - device_name: /dev/sda1
+            volume_size: "{{ volume_c_size }}"
+            volume_type: gp2
+        instance_tags:
+          Name: "{{ instance_name }}"
+      register: instance
+      tags: ec2_create
+
+    - name: get the Windows administrator password
+      ec2_win_password:
+        instance_id: "{{ instance.instances[0].id }}"
+        region: "{{ region }}"
+        key_file: "~/key.pem"
+        wait: true
+        wait_timeout: 600
+      register: winpass
+      ignore_errors: no
+
+    - name: Add ec2 to inventory for next playbook
+      add_host:
+        groups: win
+        hostname: "{{ instance.instances[0].private_ip }}"
+        instance_id: "{{ instance.instances[0].id }}"
+        ansible_user: Administrator
+        ansible_password: "{{ winpass.win_password }}"
+        ansible_port: 5986
+        ansible_connection: winrm
+        WinRM self-signed certificates:
+        ansible_winrm_server_cert_validation: ignore
+
+- hosts: win
+
+  gather_facts: false
+
+  tasks:
+
+    - name: Create tmp folder
+      win_file:
+        path: "{{ mssql_temp_download_path }}"
+        state: directory
+      tags: preq
+
+    - name: GET an object but don't download if the file checksums match. New in 2.0
+      aws_s3:
+        bucket: myles-dev-bucket
+        object: 2017_x64.exe
+        dest: /tmp/2017_x64.exe
+        mode: get
+        region: us-west-1
+        overwrite: different
+      delegate_to: localhost
+      register: aws_s3_output
+    
+    - name: copy s3 object from Ansible controller to Windows host
+      win_copy:
+        src: /tmp/2017_x64.exe
+        dest: "{{ mssql_installation_source }}"
+
+  roles:
+    - role: ./ansibleroles/mssql
+    
