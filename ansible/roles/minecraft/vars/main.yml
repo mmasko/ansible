@@ -6,5 +6,6 @@ posturl: https://47ccw0fer8.execute-api.us-west-1.amazonaws.com/production/jakec
 mcrooturl: https://launcher.mojang.com/v1/objects
 # URLs of server versions
 versions:
+  1.15.1: 4d1826eebac84847c71a77f9349cc22afd0cf0a1/server.jar
   1.14.4: 3dc3d84a581f14691199cf6831b71ed1296a9fdf/server.jar
   1.12.2: 886945bfb2b978778c3a0288fd7fab09d315b25f/server.jar
